@@ -1,4 +1,15 @@
-export default keyMap = {
+
+module.exports = {
+    VI: "VI",
+    EN: "EN",
     ADMIN: "R1",
     USER: "R2",
+    SUPPLIER: "R3",
+    PENDING: "PENDING",
+    SHIPPING: "SHIPPING",
+    AWAIT_CONFIRM: "AWAIT_CONFIRM",
+    DONE: "DONE",
+    REVERSE_AWAIT_CONFIRM: "REVERSE_AWAIT_CONFIRM",
+    REVERSE_SHIPPING: "REVERSE_SHIPPING",
+    REVERSE_DONE: "REVERSE_DONE",
 }

@@ -11,8 +11,8 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER
       },
-      typeId: {
-        type: Sequelize.INTEGER
+      type: {
+        type: Sequelize.STRING
       },
       discount: {
         type: Sequelize.FLOAT

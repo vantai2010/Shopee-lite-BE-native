@@ -12,12 +12,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-
+      History.belongsTo(models.Product, { foreignKey: "productId", targetKey: "id", as: 'productHistoryData' })
+      History.belongsTo(models.User, { foreignKey: "userId", targetKey: "id", as: 'userHistoryData' })
     }
   }
   History.init({
     userId: DataTypes.INTEGER,
     productId: DataTypes.INTEGER,
+    supplierId: DataTypes.INTEGER,
+    totalPaid: DataTypes.INTEGER,
     startTime: DataTypes.STRING,
     endTime: DataTypes.STRING
 

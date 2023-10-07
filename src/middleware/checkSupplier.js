@@ -11,7 +11,7 @@ const checkAdmin = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
-        if (decoded.roleId === keyMap.ADMIN) {
+        if (decoded.roleId === keyMap.SUPPLIER) {
             req.userId = decoded.userId
             req.roleId = decoded.roleId
             next()

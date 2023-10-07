@@ -4,7 +4,7 @@ const {
 } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-    class Promotion extends Model {
+    class Review extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
@@ -19,15 +19,14 @@ module.exports = (sequelize, DataTypes) => {
             // User.hasMany(models.Cart, { foreignKey: 'userId', as: 'userCartData' })
         }
     }
-    Promotion.init({
+    Review.init({
         userId: DataTypes.INTEGER,
-        type: DataTypes.STRING,
-        discount: DataTypes.FLOAT,
-        conditionsPrice: DataTypes.INTEGER,
+        productId: DataTypes.INTEGER,
+        rating: DataTypes.FLOAT
     }, {
         sequelize,
-        modelName: 'Promotion',
+        modelName: 'Review',
         freezeTableName: true
     });
-    return Promotion;
+    return Review;
 };

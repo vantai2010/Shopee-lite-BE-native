@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const keyMap = require('../utils/constant/keyMap');
 require('dotenv').config()
 
 
@@ -26,7 +27,7 @@ let sendEmailRegister = async (dataSend) => {
 let getBodyHTMLRegisterEmail = (dataSend) => {
     console.log(dataSend)
     let result = ''
-    if (dataSend.language === 'vi') {
+    if (dataSend.language === keyMap.VI) {
         result = `
         <h3>xin chào</h3>
         <p>Bạn nhận được email này vì bạn đã đăng ký tài khoản bên ứng dụng Shopee-lite của chúng tôi</p>

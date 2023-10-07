@@ -12,7 +12,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       image: {
-        type: Sequelize.BLOB("medium")
+        type: Sequelize.ARRAY(Sequelize.BLOB("medium"))
       },
       price: {
         type: Sequelize.INTEGER
@@ -34,9 +34,6 @@ module.exports = {
       },
       roomId: {
         type: Sequelize.STRING
-      },
-      star: {
-        type: Sequelize.FLOAT
       },
       createdAt: {
         allowNull: false,

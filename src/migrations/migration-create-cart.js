@@ -32,7 +32,9 @@ module.exports = {
       time: {
         type: Sequelize.STRING
       },
-
+      timeStart: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

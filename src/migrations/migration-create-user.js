@@ -18,7 +18,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       address: {
-        type: Sequelize.ARRAY(Sequelize.STRING)
+        type: Sequelize.TEXT
       },
       phoneNumber: {
         type: Sequelize.INTEGER
@@ -27,7 +27,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       image: {
-        type: Sequelize.BLOB("medium")
+        type: Sequelize.BLOB("tiny")
       },
       money: {
         type: Sequelize.INTEGER

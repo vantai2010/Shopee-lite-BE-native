@@ -1,26 +1,25 @@
 'use strict';
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Comment', {
+    await queryInterface.createTable('Product_Type', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
+      productId: {
         type: Sequelize.INTEGER
       },
-      parentId: {
-        type: Sequelize.INTEGER
-      },
-      content: {
-        type: Sequelize.TEXT
-      },
-      time: {
+      type: {
         type: Sequelize.STRING
       },
-
+      size: {
+        type: Sequelize.STRING
+      },
+      image: {
+        type: Sequelize.BLOB("tiny")
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -32,6 +31,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Comment');
+    await queryInterface.dropTable('Product_Type');
   }
 };

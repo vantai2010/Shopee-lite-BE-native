@@ -14,8 +14,17 @@ module.exports = {
       productId: {
         type: Sequelize.INTEGER
       },
+      productType: {
+        type: Sequelize.STRING
+      },
       rating: {
-        type: Sequelize.FLOAT
+        type: Sequelize.INTEGER
+      },
+      comment: {
+        type: Sequelize.TEXT
+      },
+      time: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

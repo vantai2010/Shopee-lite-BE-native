@@ -5,7 +5,7 @@ class supplierController {
 
     createNewProduct = async (req, res) => {
         try {
-            let { name, image, price, description, categoryId, quantity } = req.body;
+            let { name, image, price, description, categoryId, quantity, arrType } = req.body;
 
             if (!name || !image || !price || !description || !categoryId || !quantity) {
                 return res.status(200).json({
@@ -18,6 +18,7 @@ class supplierController {
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({
+                err: error.message,
                 errCode: -1,
                 messageEN: 'ERROR from to server ',
                 messageVI: "Có lỗi từ phía server "
@@ -31,6 +32,7 @@ class supplierController {
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({
+                err: error.message,
                 errCode: -1,
                 messageEN: 'ERROR from to server ',
                 messageVI: "Có lỗi từ phía server "
@@ -40,9 +42,9 @@ class supplierController {
 
     updateProductBySupplier = async (req, res) => {
         try {
-            let { name, image, price, description, categoryId, quantity } = req.body;
+            let { name, image, price, description, categoryId, quantity, arrType } = req.body;
             let { productId } = req.query
-            if (!productId || !name || !image || !price || !description || !categoryId || !quantity) {
+            if (!productId || !name || !image || !price || !description || !categoryId || !quantity || !arrType) {
                 return res.status(200).json({
                     errCode: 1,
                     messageEN: "Missing information in request ",
@@ -77,7 +79,8 @@ class supplierController {
             return res.status(400).json({
                 errCode: -1,
                 messageEN: 'ERROR from to server ',
-                messageVI: "Có lỗi từ phía server "
+                messageVI: "Có lỗi từ phía server ",
+                err: error.message
             })
         }
     }
@@ -117,6 +120,29 @@ class supplierController {
             }
 
             let response = await supplierService.getHistoryTransaction({ ...req.query, supplierId: req.userId })
+            return res.status(200).json(response)
+        } catch (error) {
+            return res.status(400).json({
+                errCode: -1,
+                messageEN: 'ERROR from to server ',
+                messageVI: "Có lỗi từ phía server "
+            })
+        }
+    }
+
+    confirmPackingProductSuccess = async (req, res) => {
+        try {
+            let { cartId } = req.body;
+
+            if (!cartId) {
+                return res.status(200).json({
+                    errCode: 1,
+                    messageEN: "Missing information in request ",
+                    messageVI: "Thiếu thông tin chuyền lên "
+                })
+            }
+
+            let response = await supplierService.confirmPackingProductSuccess({ ...req.body, supplierId: req.userId })
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({

@@ -71,6 +71,7 @@ class userController {
             let response = await userService.loginAccount(req.body)
             return res.status(200).json(response)
         } catch (error) {
+            console.log(error.message)
             return res.status(400).json({
                 errCode: -1,
                 messageEN: 'ERROR from to server ',
@@ -91,7 +92,7 @@ class userController {
                 })
             }
 
-            let response = await userService.loginAccountWithToken({ userId: req.userId })
+            let response = await userService.loginAccountWithToken({ roleId: req.roleId, userId: req.userId })
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({
@@ -161,26 +162,6 @@ class userController {
         }
     }
 
-    deleteProductFromCart = async (req, res) => {
-        try {
-            let { cartId } = req.query
-            if (!cartId) {
-                return res.status(200).json({
-                    errCode: 1,
-                    messageEN: "Missing information in request ",
-                    messageVI: "Thiếu thông tin chuyền lên "
-                })
-            }
-            let response = await userService.deleteProductFromCart(req.query)
-            return res.status(200).json(response)
-        } catch (error) {
-            return res.status(400).json({
-                errCode: -1,
-                messageEN: 'ERROR from to server ',
-                messageVI: "Có lỗi từ phía server "
-            })
-        }
-    }
 
     updateQuantityCart = async (req, res) => {
         try {
@@ -214,6 +195,90 @@ class userController {
                 })
             }
             let response = await userService.addMoney({ ...req.query, userId: req.userId })
+            return res.status(200).json(response)
+        } catch (error) {
+            return res.status(400).json({
+                errCode: -1,
+                messageEN: 'ERROR from to server ',
+                messageVI: "Có lỗi từ phía server "
+            })
+        }
+    }
+
+    pushProductToCart = async (req, res) => {
+        try {
+            let { productId, productType, quantity, supplierId, totalPaid, time } = req.body
+            if (!productId || !quantity || !supplierId || !totalPaid || !time) {
+                return res.status(200).json({
+                    errCode: 1,
+                    messageEN: "Missing information in request ",
+                    messageVI: "Thiếu thông tin chuyền lên "
+                })
+            }
+            let response = await userService.pushProductToCart({ ...req.body, userId: req.userId })
+            return res.status(200).json(response)
+        } catch (error) {
+            return res.status(400).json({
+                errCode: -1,
+                messageEN: 'ERROR from to server ',
+                messageVI: "Có lỗi từ phía server "
+            })
+        }
+    }
+
+    deleteProductFromCart = async (req, res) => {
+        try {
+            let { cartdId } = req.query
+            if (!cartdId) {
+                return res.status(200).json({
+                    errCode: 1,
+                    messageEN: "Missing information in request ",
+                    messageVI: "Thiếu thông tin chuyền lên "
+                })
+            }
+            let response = await userService.deleteProductFromCart({ ...req.query, userId: req.userId })
+            return res.status(200).json(response)
+        } catch (error) {
+            return res.status(400).json({
+                errCode: -1,
+                messageEN: 'ERROR from to server ',
+                messageVI: "Có lỗi từ phía server "
+            })
+        }
+    }
+
+    confirmReceivedProduct = async (req, res) => {
+        try {
+            let { cartId } = req.body
+            if (!cartId) {
+                return res.status(200).json({
+                    errCode: 1,
+                    messageEN: "Missing information in request ",
+                    messageVI: "Thiếu thông tin chuyền lên "
+                })
+            }
+            let response = await userService.confirmReceivedProduct({ ...req.body, userId: req.userId })
+            return res.status(200).json(response)
+        } catch (error) {
+            return res.status(400).json({
+                errCode: -1,
+                messageEN: 'ERROR from to server ',
+                messageVI: "Có lỗi từ phía server "
+            })
+        }
+    }
+
+    reviewProduct = async (req, res) => {
+        try {
+            let { reviewId, rating, comment, time } = req.body
+            if (!reviewId || !rating || !comment || !time) {
+                return res.status(200).json({
+                    errCode: 1,
+                    messageEN: "Missing information in request ",
+                    messageVI: "Thiếu thông tin chuyền lên "
+                })
+            }
+            let response = await userService.reviewProduct({ ...req.body, userId: req.userId })
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({

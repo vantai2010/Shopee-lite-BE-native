@@ -3,7 +3,8 @@ const db = require("../models/index")
 const argon2 = require("argon2")
 const emailService = require("./emailService")
 const jwt = require("jsonwebtoken")
-const { handleCheckUpdate } = require("../utils/verifyORM/checkResult")
+const { handleCheckUpdate, handleCheckCreate, handleCheckDelete } = require("../utils/verifyORM/checkResult")
+require('dotenv').config()
 
 class userService {
 
@@ -39,7 +40,8 @@ class userService {
                         resolve({
                             errCode: 0,
                             messageEN: "Registration successful",
-                            messageVI: "Vui lòng kiểm tra email để xác thực"
+                            messageVI: "Vui lòng kiểm tra email để xác thực",
+                            accountId: check.id
                         })
                     }
                 }
@@ -107,7 +109,8 @@ class userService {
                         messageVI: "Tài khoản này không tồn tại"
                     })
                 } else {
-                    let passwordVerify = await argon2.verifyPassword(checkEmailExist.password, password)
+                    let passwordVerify = await argon2.verify(checkEmailExist.password, password)
+
                     if (!passwordVerify) {
                         resolve({
                             errCode: 1,
@@ -123,7 +126,7 @@ class userService {
                             errCode: 0,
                             messageEN: "Login successfully",
                             messageVI: "Đăng nhập thành công",
-                            data: user,
+                            data: { ...user, roleId: checkEmailExist.roleId, email: email },
                             token: token
                         })
                     }
@@ -147,11 +150,14 @@ class userService {
                         messageVI: "Không tìm thấy thông tin người dùng"
                     })
                 } else {
+                    let userAccountData = await db.Account.findOne({
+                        where: { userId: data.userId }
+                    })
                     resolve({
                         errCode: 0,
                         messageEN: "Login successfully",
                         messageVI: "Đăng nhập thành công",
-                        data: userData
+                        data: { ...userData, roleId: data.roleId, email: userAccountData.email }
                     })
                 }
             } catch (error) {
@@ -310,31 +316,6 @@ class userService {
         })
     }
 
-    deleteProductFromCart = (data) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let { cartId } = data
-                let checkDelete = await db.Cart.destroy({
-                    where: { id: cartId }
-                })
-                if (!checkDelete) {
-                    resolve({
-                        errCode: -1,
-                        messageEN: "Removing products from cart failed",
-                        messageVI: "Xóa sản phẩm trong giỏ hàng thất bại"
-                    })
-                } else {
-                    resolve({
-                        errCode: 0,
-                        messageEN: "Removing products from cart successfully",
-                        messageVI: "Xóa sản phẩm trong giỏ hàng thành công"
-                    })
-                }
-            } catch (error) {
-                reject(error);
-            }
-        })
-    }
 
     updateQuantityCart = (data) => {
         return new Promise(async (resolve, reject) => {
@@ -404,6 +385,165 @@ class userService {
             }
         })
     }
+
+    pushProductToCart = (data) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let { productId, productType, quantity, userId, supplierId, totalPaid, time } = data
+                let checkCartUser = await db.User.findAll({
+                    where: { id: userId }
+                })
+                if (checkCartUser.length > 10) {
+                    resolve({
+                        errCode: 1,
+                        messageEN: "You can only have a maximum of 10 items in your cart",
+                        messageVI: "Bạn chỉ được tối đa 10 mặt hàng trong giỏ"
+                    })
+                } else {
+                    let checkCreate = await db.Cart.create({
+                        productId: productId,
+                        productType: productType,
+                        quantity: quantity,
+                        userId: userId,
+                        supplierId: supplierId,
+                        totalPaid: totalPaid,
+                        time: time,
+                        timeStart: time
+                    })
+                    resolve(handleCheckCreate(checkCreate))
+                }
+            } catch (error) {
+                reject(error);
+            }
+        })
+    }
+
+    deleteProductFromCart = (data) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let { cartId } = data
+
+                let optionsFind = {}
+                if (Array.isArray(cartId)) {
+                    optionsFind.id = {
+                        [Op.in]: productId
+                    }
+                } else {
+                    optionsFind.id = productId
+                }
+
+                let checkExist = await db.Cart.findAll({
+                    where: optionsFind
+                })
+
+                if (!checkExist) {
+                    resolve({
+                        errCode: 1,
+                        messageEN: "Information not found",
+                        messageVI: "Không tìm thấy thông tin"
+                    })
+                } else {
+                    let checkDelete = await db.Cart.destroy({
+                        where: optionsFind
+                    })
+                    resolve(handleCheckDelete(checkDelete))
+                }
+
+            } catch (error) {
+                reject(error);
+            }
+        })
+    }
+
+    confirmReceivedProduct = (data) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let { cartId } = data
+
+                let checkCart = await db.Cart.findOne({
+                    where: { id: cartId }
+                })
+                if (checkCart) {
+                    let checkDelete = await db.Cart.destroy({ where: { id: cartId } })
+                    if (checkDelete) {
+                        let checkCreate = await db.History.create({
+                            userId: checkCart.userId,
+                            productId: checkCart.productId,
+                            supplierId: checkCart.supplierId,
+                            totalPaid: checkCart.totalPaid,
+                            startTime: checkCart.startTime,
+                            endTime: checkCart.time
+                        })
+                        let checkCreateReview = await db.Review.create({
+                            userId: checkCart.userId,
+                            productId: checkCart.productId,
+                            productType: checkCart.productType,
+                        })
+                        if (!checkCreate) {
+                            resolve({
+                                errCode: 1,
+                                messageEN: "Update transaction to failure history",
+                                messageVI: "Cập nhật giao dịch vào lịch sử thất bại"
+                            })
+                        } else if (!checkCreateReview) {
+                            resolve({
+                                errCode: 1,
+                                messageEN: "Update failed assessment information",
+                                messageVI: "Cập nhật thông tin đánh giá thất bại"
+                            })
+                        } else {
+                            resolve({
+                                errCode: 0,
+                                messageEN: "Confirm successful transaction",
+                                messageVI: "Xác nhận giao dịch thành công",
+                                reviewId: checkCreateReview.id
+                            })
+                        }
+                    } else {
+                        resolve({
+                            errCode: 1,
+                            messageEN: "There is a problem with the processing process on the system",
+                            messageVI: "Qúa trình xử lý trên hệ thông có trục trặc"
+                        })
+                    }
+                } else {
+                    resolve({
+                        errCode: 1,
+                        messageEN: "No compatibility information found",
+                        messageVI: "Không tìm thấy thông tin tương thích"
+                    })
+                }
+            } catch (error) {
+                reject(error);
+            }
+        })
+    }
+
+    reviewProduct = (data) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let { reviewId, rating, comment, time } = data
+                let review = await db.Review.findOne({ where: { id: reviewId } })
+                if (!review) {
+                    resolve({
+                        errCode: 1,
+                        messageEN: "",
+                        messageVI: "Không tìm thấy thông tin phù hợp"
+                    })
+                } else {
+                    review.rating = rating
+                    review.comment = comment
+                    review.time = time
+                    let checkUpdate = await review.save()
+                    resolve(handleCheckUpdate(checkUpdate))
+                }
+
+            } catch (error) {
+                reject(error);
+            }
+        })
+    }
+
 }
 
 module.exports = new userService();

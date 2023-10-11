@@ -12,7 +12,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       image: {
-        type: Sequelize.ARRAY(Sequelize.BLOB("medium"))
+        type: Sequelize.ARRAY(Sequelize.DataTypes.BLOB("tiny"))
       },
       price: {
         type: Sequelize.INTEGER

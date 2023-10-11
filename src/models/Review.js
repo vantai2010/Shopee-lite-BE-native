@@ -12,17 +12,17 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
-            // User.belongsTo(models.Allcode, { foreignKey: 'genderId', targetKey: 'keyMap', as: 'genderUserData' })
-            // User.belongsTo(models.Allcode, { foreignKey: 'roleId', targetKey: 'keyMap', as: 'roleData' })
-            // User.hasMany(models.History, { foreignKey: 'userId', as: 'userData' })
-            // User.hasMany(models.Comment, { foreignKey: 'userId', as: 'userCommentData' })
-            // User.hasMany(models.Cart, { foreignKey: 'userId', as: 'userCartData' })
+            Review.belongsTo(models.Product, { foreignKey: "productId", targetKey: "id", as: "productReviewData" })
+            Review.belongsTo(models.User, { foreignKey: "userId", targetKey: "id", as: "userReviewData" })
         }
     }
     Review.init({
         userId: DataTypes.INTEGER,
         productId: DataTypes.INTEGER,
-        rating: DataTypes.FLOAT
+        productType: DataTypes.STRING,
+        rating: DataTypes.INTEGER,
+        comment: DataTypes.TEXT,
+        time: DataTypes.STRING,
     }, {
         sequelize,
         modelName: 'Review',

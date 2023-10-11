@@ -14,13 +14,15 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       User.hasMany(models.Cart, { foreignKey: "userId", as: 'userCartData' })
       User.hasMany(models.History, { foreignKey: "userId", as: 'userHistoryData' })
+      User.hasMany(models.Review, { foreignKey: "userId", as: 'userReviewData' })
+      // User.hasOne(models.Account, { foreignKey: "userId", as: 'accountUserData' })
     }
   }
   User.init({
     accountId: DataTypes.INTEGER,
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
-    address: DataTypes.ARRAY(DataTypes.STRING),
+    address: DataTypes.TEXT,
     phoneNumber: DataTypes.INTEGER,
     genderId: DataTypes.STRING,
     image: DataTypes.BLOB('medium'),

@@ -12,7 +12,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       image: {
-        type: Sequelize.ARRAY(Sequelize.DataTypes.BLOB("tiny"))
+        type: Sequelize.ARRAY(Sequelize.STRING)
       },
       price: {
         type: Sequelize.INTEGER
@@ -31,9 +31,6 @@ module.exports = {
       },
       bought: {
         type: Sequelize.INTEGER
-      },
-      roomId: {
-        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

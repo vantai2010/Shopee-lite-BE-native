@@ -14,7 +14,7 @@ class supplierController {
                     messageVI: "Thiếu thông tin chuyền lên "
                 })
             }
-            let response = await supplierService.createNewProduct({ ...req.body, supplierId: req.userId })
+            let response = await supplierService.createNewProduct({ ...req.body, supplierId: req.userId, files: req.files })
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({

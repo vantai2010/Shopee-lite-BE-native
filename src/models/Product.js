@@ -19,14 +19,13 @@ module.exports = (sequelize, DataTypes) => {
     }
     Product.init({
         name: DataTypes.STRING,
-        image: DataTypes.ARRAY(DataTypes.BLOB('medium')),
+        image: DataTypes.ARRAY(DataTypes.STRING),
         price: DataTypes.INTEGER,
         description: DataTypes.STRING,
         categoryId: DataTypes.STRING,
         supplierId: DataTypes.INTEGER,
         quantity: DataTypes.INTEGER,
-        bought: DataTypes.INTEGER,
-        roomId: DataTypes.STRING
+        bought: DataTypes.INTEGER
     }, {
         sequelize,
         modelName: 'Product',

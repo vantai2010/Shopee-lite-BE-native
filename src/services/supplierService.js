@@ -31,12 +31,25 @@ const handleUpdateProduct = async ({ checkUpdateProduct, checkDestroyProductType
     }
 }
 
+async function uploadImage(imageFile) {
+    return new Promise((resolve, reject) => {
+        upload.single('image')(imageFile, null, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                const imageLocation = path.join('uploads', imageFile.filename);
+                resolve(imageLocation);
+            }
+        });
+    });
+}
+
 class supplierService {
 
     createNewProduct = (data) => {
         return new Promise(async (resolve, reject) => {
             try {
-                let { name, image, price, description, categoryId, supplierId, quantity, arrType } = data
+                let { name, image, price, description, categoryId, supplierId, quantity, arrType, files } = data
                 let chekcExist = await db.Product.findOne({
                     where: { name: name, supplierId: supplierId }
                 })
@@ -50,27 +63,25 @@ class supplierService {
                 } else if (!arrType) {
                     let checkCreate = await db.Product.create({
                         name: name,
-                        image: image,
+                        image: files.map(file => file.path),
                         price: price,
                         description: description,
                         categoryId: categoryId,
                         supplierId: supplierId,
                         quantity: quantity,
                         bought: 0,
-                        roomId: name + price + supplierId
                     })
                     resolve(handleCheckCreate(checkCreate))
                 } else {
                     let checkCreateProduct = await db.Product.create({
                         name: name,
-                        image: image,
+                        image: files.map(file => file.path),
                         price: price,
                         description: description,
                         categoryId: categoryId,
                         supplierId: supplierId,
                         quantity: quantity,
                         bought: 0,
-                        roomId: name + price + supplierId
                     })
                     if (!checkCreateProduct) {
                         resolve({
@@ -79,12 +90,12 @@ class supplierService {
                             messageVI: "Tạo mới sản phẩm thất bại"
                         })
                     } else {
-                        arrType = arrType.map(item => {
+                        arrType = arrType.map(async item => {
                             return {
                                 supplierId: checkCreateProduct.id,
                                 type: item.type,
                                 size: item.size,
-                                image: item.image
+                                image: await uploadImage(item.image)
                             }
                         })
                         let checkCreate = await db.Product_Type.bulkCreate(arrType)
@@ -150,7 +161,9 @@ class supplierService {
                 if (products && totalCount) {
                     for (let i = 0; i < products.length; i++) {
                         products[i].image = products[i].image?.map(image => {
-                            return new Buffer(image, 'base64').toString("binary");
+                            let imageEncode = image.toString('base64')
+                            // return new Buffer(image, 'base64').toString("binary");
+                            return imageEncode
                         })
                     }
                     resolve({

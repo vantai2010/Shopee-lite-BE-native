@@ -22,10 +22,10 @@ module.exports = (sequelize, DataTypes) => {
     accountId: DataTypes.INTEGER,
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
-    address: DataTypes.TEXT,
+    address: DataTypes.STRING,
     phoneNumber: DataTypes.INTEGER,
     genderId: DataTypes.STRING,
-    image: DataTypes.BLOB('medium'),
+    image: DataTypes.STRING,
     money: DataTypes.INTEGER
 
   }, {

@@ -32,3 +32,39 @@ let registerAccounts = () => {
         }
     })
 }
+
+
+// router.post("/r", (req, res) => {
+//     let formidable = require("formidable")
+
+//     var form = new formidable.IncomingForm()
+//     form.uploadDir = "./upload"
+//     form.keepExtensions = true
+//     form.maxFieldsSize = 10 * 1024 * 1024
+//     form.multiple = true
+//     form.parse(req, (err, fields, files) => {
+//         if (err) {
+//             res.json({
+//                 result: false,
+//                 data: {},
+//                 message: `Cannot upload image ${err}`
+//             })
+//         }
+//         var arrayOfFiles = files[""]
+//         if (arrayOfFiles.length > 0) {
+//             var fileNames = []
+//             arrayOfFiles.forEach(eachTime => {
+//                 fileNames.push(eachTime.path.split("/")[1])
+//             })
+//             res.json({
+//                 result: true,
+//                 data: fileNames,
+//             })
+//         } else {
+//             res.json({
+//                 result: false,
+//                 data: {},
+//             })
+//         }
+//     })
+// })

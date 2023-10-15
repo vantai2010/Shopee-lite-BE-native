@@ -47,20 +47,20 @@ class appService {
                     include: [
                         {
                             model: db.Review,
-                            as: "userReviewData",
+                            as: "productReviewData",
                             attributes: ["rating", "comment"],
                             include: [
                                 {
                                     model: db.User,
                                     as: "userReviewData",
-                                    attributes: ["image", "fistName", "lastName"]
+                                    attributes: ["id", "image", "firstName", "lastName"]
                                 }
                             ]
                         },
                         {
                             model: db.Product_Type,
                             as: "productTypeData",
-                            attributes: ["type"]
+                            attributes: ["id", "type", "size", "quantity"]
                         }
                     ]
                 })

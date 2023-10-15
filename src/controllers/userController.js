@@ -45,7 +45,7 @@ class userController {
                 })
             }
 
-            let response = await userService.registerInformation(req.body)
+            let response = await userService.registerInformation({ ...req.body, image: req?.file?.filename })
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({
@@ -71,7 +71,6 @@ class userController {
             let response = await userService.loginAccount(req.body)
             return res.status(200).json(response)
         } catch (error) {
-            console.log(error.message)
             return res.status(400).json({
                 errCode: -1,
                 messageEN: 'ERROR from to server ',

@@ -31,18 +31,6 @@ const handleUpdateProduct = async ({ checkUpdateProduct, checkDestroyProductType
     }
 }
 
-async function uploadImage(imageFile) {
-    return new Promise((resolve, reject) => {
-        upload.single('image')(imageFile, null, (err) => {
-            if (err) {
-                reject(err);
-            } else {
-                const imageLocation = path.join('uploads', imageFile.filename);
-                resolve(imageLocation);
-            }
-        });
-    });
-}
 
 class supplierService {
 
@@ -63,7 +51,7 @@ class supplierService {
                 } else if (!arrType) {
                     let checkCreate = await db.Product.create({
                         name: name,
-                        image: files.map(file => file.path),
+                        image: files.map(file => file.filename),
                         price: price,
                         description: description,
                         categoryId: categoryId,
@@ -75,7 +63,7 @@ class supplierService {
                 } else {
                     let checkCreateProduct = await db.Product.create({
                         name: name,
-                        image: files.map(file => file.path),
+                        image: files.map(file => file.filename),
                         price: price,
                         description: description,
                         categoryId: categoryId,
@@ -90,14 +78,16 @@ class supplierService {
                             messageVI: "Tạo mới sản phẩm thất bại"
                         })
                     } else {
-                        arrType = arrType.map(async item => {
+                        console.log("check sau :", arrType)
+                        arrType = arrType.map(item => {
                             return {
-                                supplierId: checkCreateProduct.id,
-                                type: item.type,
-                                size: item.size,
-                                image: await uploadImage(item.image)
+                                productId: checkCreateProduct?.id,
+                                type: item?.type,
+                                size: item?.size,
+                                quantity: item?.quantity
                             }
                         })
+                        console.log(arrType)
                         let checkCreate = await db.Product_Type.bulkCreate(arrType)
                         if (!checkCreate) {
                             resolve({
@@ -156,22 +146,43 @@ class supplierService {
                     ],
                     limit: limit,
                     offsey: offset,
-                    raw: true
+                    raw: true,
+                    nest: true
                 })
                 if (products && totalCount) {
-                    for (let i = 0; i < products.length; i++) {
-                        products[i].image = products[i].image?.map(image => {
-                            let imageEncode = image.toString('base64')
-                            // return new Buffer(image, 'base64').toString("binary");
-                            return imageEncode
+
+                    let arrProducts = []
+                    products.forEach(product => {
+                        if (!arrProducts.some(item => item.id === product.id)) {
+                            arrProducts.push({
+                                id: product.id,
+                                name: product.name,
+                                image: product.image,
+                                price: product.price,
+                                description: product.description,
+                                categoryId: product.categoryId,
+                                quantity: product.quantity,
+                                bought: product.bought,
+                                productTypeData: []
+                            })
+                        }
+                        arrProducts.map(item => {
+                            if (item.id === product.id) {
+                                return {
+                                    ...item,
+                                    productTypeData: item.productTypeData.push(product.productTypeData)
+                                }
+                            } else {
+                                return item
+                            }
                         })
-                    }
+                    })
                     resolve({
                         errCode: 0,
                         messageEN: "Get products successfully",
                         messageVI: "Lấy sản phẩm thành công",
                         data: {
-                            products: products,
+                            products: arrProducts,
                             totalItems: totalCount,
                         }
                     })
@@ -192,7 +203,7 @@ class supplierService {
     updateProductBySupplier = (data) => {
         return new Promise(async (resolve, reject) => {
             try {
-                let { productId, name, image, price, description, categoryId, supplierId, quantity, arrType } = data
+                let { productId, name, image, price, description, categoryId, supplierId, quantity, arrType, files } = data
                 if (arrType) {
                     arrType = arrType.map(item => {
                         return {
@@ -227,7 +238,7 @@ class supplierService {
                         })
                     } else {
                         checkProductExists.name = name
-                        checkProductExists.image = image
+                        checkProductExists.image = files?.map(file => file.filename)
                         checkProductExists.price = price
                         checkProductExists.description = description
                         checkProductExists.categoryId = categoryId
@@ -242,7 +253,7 @@ class supplierService {
                 }
                 else if (checkProductExists.name === name) {
                     checkProductExists.name = name
-                    checkProductExists.image = image
+                    checkProductExists.image = files?.map(file => file.filename)
                     checkProductExists.price = price
                     checkProductExists.description = description
                     checkProductExists.categoryId = categoryId

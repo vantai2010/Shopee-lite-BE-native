@@ -1,9 +1,10 @@
 const multer = require('multer');
+const path = require('path');
 const storage = multer.diskStorage({
-    destination: 'uploads/',
+    destination: 'public/Images',
     filename: (req, file, cb) => {
-        console.log(req)
-        cb(null, file.originalname);
+        // Sử dụng UUID để tạo tên tệp duy nhất
+        cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
     },
 });
 

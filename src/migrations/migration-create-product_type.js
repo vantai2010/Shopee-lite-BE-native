@@ -17,8 +17,8 @@ module.exports = {
       size: {
         type: Sequelize.STRING
       },
-      image: {
-        type: Sequelize.STRING
+      quantity: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,

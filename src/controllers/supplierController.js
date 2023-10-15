@@ -7,6 +7,10 @@ class supplierController {
         try {
             let { name, image, price, description, categoryId, quantity, arrType } = req.body;
 
+            // console.log("truoc ", arrType, typeof arrType);
+            // const jsonString = req.files['arrType'][0].buffer.toString('utf-8');
+            let arrTypeEncode = JSON.parse(arrType[0])
+            // console.log(arrType, typeof arrType);
             if (!name || !image || !price || !description || !categoryId || !quantity) {
                 return res.status(200).json({
                     errCode: 1,
@@ -14,7 +18,8 @@ class supplierController {
                     messageVI: "Thiếu thông tin chuyền lên "
                 })
             }
-            let response = await supplierService.createNewProduct({ ...req.body, supplierId: req.userId, files: req.files })
+            // console.log("file name", req.files)
+            let response = await supplierService.createNewProduct({ ...req.body, supplierId: req.userId, files: req.files, arrType: arrTypeEncode })
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({
@@ -44,6 +49,7 @@ class supplierController {
         try {
             let { name, image, price, description, categoryId, quantity, arrType } = req.body;
             let { productId } = req.query
+            let arrTypeEncode = JSON.parse(arrType[0])
             if (!productId || !name || !image || !price || !description || !categoryId || !quantity || !arrType) {
                 return res.status(200).json({
                     errCode: 1,
@@ -51,7 +57,14 @@ class supplierController {
                     messageVI: "Thiếu thông tin chuyền lên "
                 })
             }
-            let response = await supplierService.updateProductBySupplier({ ...req.body, supplierId: req.userId, ...req.query })
+            let response = await supplierService.updateProductBySupplier({
+                ...req.body,
+                supplierId:
+                    req.userId,
+                ...req.query,
+                arrType: arrTypeEncode,
+                files: req.files
+            })
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({

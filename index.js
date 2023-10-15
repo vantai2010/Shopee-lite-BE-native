@@ -7,6 +7,8 @@ const rootRouter = require('./src/routers/web')
 const connectDB = require('./src/config/connectDB')
 const jwt = require('jsonwebtoken')
 const axios = require('axios')
+const path = require('path')
+const bodyParser = require('body-parser');
 
 const http = require('http').createServer(app)
 
@@ -149,8 +151,10 @@ chatServer.on('connection', (socket) => {
 connectDB()
 
 app.use(express.json({ limit: '50mb' }))
+// app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }))
 app.use(cors({ origin: true }))
+app.use(express.static('public'))
 app.use(express.json())
 
 app.use('/api', rootRouter)

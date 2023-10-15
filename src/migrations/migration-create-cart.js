@@ -17,7 +17,7 @@ module.exports = {
       supplierId: {
         type: Sequelize.INTEGER
       },
-      productType: {
+      productTypeId: {
         type: Sequelize.INTEGER
       },
       statusId: {

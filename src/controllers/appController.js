@@ -31,6 +31,7 @@ class appController {
             return res.status(200).json(response)
         } catch (error) {
             return res.status(400).json({
+                err: error.message,
                 errCode: -1,
                 messageEN: 'ERROR from to server ',
                 messageVI: "Có lỗi từ phía server "

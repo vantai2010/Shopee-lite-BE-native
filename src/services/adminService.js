@@ -45,11 +45,6 @@ class adminService {
                     raw: true
                 })
                 if (products && totalCount) {
-                    for (let i = 0; i < products.length; i++) {
-                        products[i].image = products[i].image?.map(image => {
-                            return new Buffer(image, 'base64').toString("binary");
-                        })
-                    }
                     resolve({
                         errCode: 0,
                         messageEN: "Get products successfully",

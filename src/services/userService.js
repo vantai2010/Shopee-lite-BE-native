@@ -66,22 +66,13 @@ class userService {
                     image: image
                 })
                 if (checkCreate) {
-                    let accountOfUser = await db.Account.findOne({ where: { id: accountId } })
-                    accountOfUser.userId = checkCreate.id
-                    let checkUpdateAccount = await accountOfUser.save()
-                    if (checkUpdateAccount) {
-                        resolve({
-                            errCode: -1,
-                            messageEN: "There was an error while updating information on the server",
-                            messageVI: "Có lỗi trong quá trình cập nhật thông tin ở máy chủ"
-                        })
-                    } else {
-                        resolve({
-                            errCode: 0,
-                            messageEN: "You have successfully registered an account!",
-                            messageVI: "Bạn đã đăng ký tài khoản thành công !"
-                        })
-                    }
+
+                    resolve({
+                        errCode: 0,
+                        messageEN: "You have successfully registered an account!",
+                        messageVI: "Bạn đã đăng ký tài khoản thành công !"
+                    })
+
                 } else {
                     resolve({
                         errCode: -1,
@@ -118,17 +109,25 @@ class userService {
                             messageVI: "Mật khẩu không chính xác"
                         })
                     } else {
-                        let token = jwt.sign({ userId: checkEmailExist.userId, roleId: checkEmailExist.roleId }, process.env.ACCESS_TOKEN_SECRET)
                         let user = await db.User.findOne({
-                            where: { id: checkEmailExist.userId }
+                            where: { accountId: checkEmailExist.id }
                         })
-                        resolve({
-                            errCode: 0,
-                            messageEN: "Login successfully",
-                            messageVI: "Đăng nhập thành công",
-                            data: { ...user, roleId: checkEmailExist.roleId, email: email },
-                            token: token
-                        })
+                        if (!user) {
+                            resolve({
+                                errCode: 1,
+                                messageEN: "Information user not found",
+                                messageVI: "Không tìm thấy thông tin người dùng"
+                            })
+                        } else {
+                            let token = jwt.sign({ userId: user.id, roleId: checkEmailExist.roleId }, process.env.ACCESS_TOKEN_SECRET)
+                            resolve({
+                                errCode: 0,
+                                messageEN: "Login successfully",
+                                messageVI: "Đăng nhập thành công",
+                                data: { ...user, roleId: checkEmailExist.roleId, email: email },
+                                token: token
+                            })
+                        }
                     }
                 }
             } catch (error) {
@@ -151,7 +150,7 @@ class userService {
                     })
                 } else {
                     let userAccountData = await db.Account.findOne({
-                        where: { userId: data.userId }
+                        where: { id: userData.accountId }
                     })
                     resolve({
                         errCode: 0,

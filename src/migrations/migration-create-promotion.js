@@ -8,6 +8,9 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
+      productId: {
+        type: Sequelize.INTEGER
+      },
       userId: {
         type: Sequelize.INTEGER
       },
@@ -15,10 +18,13 @@ module.exports = {
         type: Sequelize.STRING
       },
       discount: {
-        type: Sequelize.FLOAT
+        type: Sequelize.STRING
       },
       conditionsPrice: {
         type: Sequelize.INTEGER
+      },
+      timeEnd: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

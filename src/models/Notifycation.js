@@ -11,17 +11,19 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-
+      Notifycation.belongsTo(models.Product, { foreignKey: "productId", targetKey: "id", as: "notifyProductData" })
 
     }
   }
   Notifycation.init({
     senderId: DataTypes.INTEGER,
     receiverId: DataTypes.INTEGER,
+    productId: DataTypes.INTEGER,
     titleId: DataTypes.STRING,
     messageEn: DataTypes.TEXT,
     messageVi: DataTypes.TEXT,
     location: DataTypes.STRING,
+    time: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Notifycation',

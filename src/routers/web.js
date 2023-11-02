@@ -10,86 +10,70 @@ const appController = require('../controllers/appController')
 const upload = require("../middleware/handleSaveImage")
 
 router.post("/register", userController.registerAccount)
-router.post("/register-information", upload.array("image"), userController.registerInformation)
+router.post("/register-information", upload.single("image"), userController.registerInformation)
 router.post("/login", userController.loginAccount)
 router.post("/login-token", verifyToken, userController.loginAccountWithToken)
 router.post("/update-information", verifyToken, userController.updateInformation)
-router.post("/update-bank-for-user", verifyToken, userController.updateBankForUser)
-router.put("/add-money", verifyToken, userController.addMoney)
+// router.put("/add-money", verifyToken, userController.addMoney)
 
 router.get("/get-all-cart", verifyToken, userController.getAllCart)
 router.put("/update-quantity-cart", verifyToken, userController.updateQuantityCart)
 router.post("/push-product-to-cart", verifyToken, userController.pushProductToCart)
 router.delete("/delete-product-from-cart", verifyToken, userController.deleteProductFromCart)
-router.post("/confirm-received-product", verifyToken, userController.confirmReceivedProduct)
 router.put("/review-product", verifyToken, userController.reviewProduct)
+router.post("/buy-product", verifyToken, userController.buyProduct)
+
+router.post("/set-follow-shop", verifyToken, userController.setFollowShop)
+router.post("/set-unfollow-shop", verifyToken, userController.setUnFollowShop)
+
+router.put("/update-bank-for-user", verifyToken, userController.updateBankForUser)
+router.get("/get-banks-for-user", verifyToken, userController.getBanksForUser)
+router.post("/create-bank-for-user", verifyToken, userController.createBankForUser)
+router.post("/verify-pass-bank-for-user", verifyToken, userController.verifyPassBankForUser)
+router.get("/get-all-vouchers-by-user", verifyToken, userController.getAllVouchersByUser)
+
+router.get("/get-transaction-by-user", verifyToken, userController.getTransactionByUser)
+router.get("/get-number-transaction-by-user", verifyToken, userController.getNumberTransactionByUser)
+router.get("/get-list-product-bought-unReview-by-user", verifyToken, userController.getListProductBoughtUnReviewByUser)
+router.post("/confirm-received-product", verifyToken, userController.confirmReceivedProduct)
+router.post("/review-product-bought", verifyToken, userController.reviewProductBought)
+router.post("/cancel-buy-product", verifyToken, userController.cancelBuyProduct)
+
+router.get("/get-histories-by-user", verifyToken, userController.getHistoriesByUser)
+router.get("/list-user-chat-by-user", verifyToken, userController.getListUserChatByUser)
+router.get("/list-content-chat-by-user", verifyToken, userController.getContentChatByUser)
+router.post("/send-mess-chat-by-user", verifyToken, userController.sendMessChatByUser)
+router.get("/get-list-notify-by-user", verifyToken, userController.getListNotifyByUser)
+router.post("/craete-new-notify-by-user", verifyToken, userController.createNewNotity)
+router.delete("/delete-notify-by-notifyId", verifyToken, userController.deleteNotifyByNotifyId)
+
+router.get("/get-number-notifycation-by-user", verifyToken, userController.getNumberNotifycationByUser)
+router.get("/get-number-cart-by-user", verifyToken, userController.getNumberCartByUser)
 
 
 router.post("/create-product-by-supplier", checkSupplier, upload.array("image"), supplierController.createNewProduct)
 router.get("/get-product-by-supplierId", checkSupplier, supplierController.getProductBySupplierId)
 router.get("/get-product-on-transaction", checkSupplier, supplierController.getProductOnTransaction)
 router.get("/get-history-transaction", checkSupplier, supplierController.getHistoryTransaction)
-router.put("/update-product-by-supplier", checkSupplier, upload.array("image"), supplierController.updateProductBySupplier)
+router.put("/update-product-by-supplier", checkSupplier, upload.array("newImage"), supplierController.updateProductBySupplier)
 router.delete("/delete-product-by-supplier", checkSupplier, supplierController.deleteProductBySupplier)
-router.put("/confirm-packing-product-success", checkSupplier, supplierController.confirmPackingProductSuccess)
+router.put("/confirm-transaction-success", checkSupplier, supplierController.confirmTransactionSuccess)
+router.get("/get-history-by-supplier", checkSupplier, supplierController.getHistoryBySupplier)
+router.post("/add-new-voucher-for-product-by-supplier", checkSupplier, supplierController.addNewVoucherForProductBySupplier)
 
 router.get("/get-product", appController.getProduct)
 router.get("/get-product-detail", appController.getProductDetail)
+router.get("/get-list-review-of-product", appController.getListReviewOfProduct)
+router.get("/get-information-shop", appController.getInforShop)
 
 router.get("/get-product-by-admin", checkAdmin, adminController.getProductByAdmin)
-router.get("/get-all-users", checkAdmin, adminController.getAllUsers)
+router.get("/get-all-users-by-admin", checkAdmin, adminController.getAllUsers)
+router.post("/update-role-user-by-admin", checkAdmin, adminController.updateUserByAdmin)
+router.delete("/delete-user-by-admin", checkAdmin, adminController.deleteUserByAdmin)
+router.post("/create-new-user-by-admin", checkAdmin, upload.single("image"), adminController.createNewUserByAdmin)
+router.post("/add-new-voucher-by-admin", checkAdmin, adminController.addNewVoucherByAdmin)
+// router.get("/get-list-notify-by-admin", checkAdmin, adminController.addNewVoucherByAdmin)
 
-
-
-router.post("/r", (req, res) => {
-    let formidable = require("formidable")
-
-    var form = new formidable.IncomingForm()
-    form.uploadDir = "./uploads"
-    form.keepExtensions = true
-    // form.maxFieldsSize = 10 * 1024 * 1024
-    form.multiple = true
-    form.parse(req, (err, fields, files) => {
-        if (err) {
-            res.json({
-                result: false,
-                data: {},
-                message: `Cannot upload image ${err}`
-            })
-        }
-        var arrayOfFiles = files["image"]
-        console.log(arrayOfFiles)
-        console.log("files.image.path:              ", files.image.path)
-        if (arrayOfFiles?.length > 0) {
-            var fileNames = []
-
-        } else {
-            res.json({
-                result: true,
-                data: files.image.path,
-
-            })
-            // res.json({
-            //     result: false,
-            //     data: {},
-            // })
-        }
-    })
-})
-
-
-router.post('/upload', upload.array('image'), (req, res) => {
-    const name = req.body.name;
-    const age = req.body.age;
-
-    // Tệp ảnh đã được lưu trữ trong thư mục 'uploads/'
-
-    // Lấy đường dẫn tệp ảnh và lưu nó vào cơ sở dữ liệu
-    const imagePath = req.files.map(file => file.path);
-    console.log(imagePath);
-    // Điều này phụ thuộc vào loại cơ sở dữ liệu bạn đang sử dụng
-
-    //res.status(200).json({ message: 'Tải ảnh thành công', imagePath: imagePath });
-});
+router.post("/craete-new-notify-socket", adminController.createNewNotitySocket)
 
 module.exports = router

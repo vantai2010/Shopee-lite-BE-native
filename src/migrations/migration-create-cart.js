@@ -26,7 +26,10 @@ module.exports = {
       quantity: {
         type: Sequelize.INTEGER
       },
-      totalPaid: {
+      productFee: {
+        type: Sequelize.INTEGER
+      },
+      shipFee: {
         type: Sequelize.INTEGER
       },
       time: {

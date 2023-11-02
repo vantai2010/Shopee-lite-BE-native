@@ -15,6 +15,8 @@ module.exports = (sequelize, DataTypes) => {
             Product.hasMany(models.History, { foreignKey: "productId", as: 'productHistoryData' })
             Product.hasMany(models.Review, { foreignKey: "productId", as: 'productReviewData' })
             Product.hasMany(models.Product_Type, { foreignKey: "productId", as: 'productTypeData' })
+            Product.hasMany(models.Notifycation, { foreignKey: "productId", as: 'notifyProductData' })
+            Product.belongsTo(models.User, { foreignKey: "supplierId", targetKey: "id", as: "productSupplierData" })
         }
     }
     Product.init({

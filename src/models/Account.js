@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            // Account.hasOne(models.User, { foreignKey: "userId", targetKey: "id", as: "accountUserData" })
+            Account.hasOne(models.User, { foreignKey: "accountId", as: "accountUserData" })
         }
     }
     Account.init({

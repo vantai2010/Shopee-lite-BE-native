@@ -14,10 +14,16 @@ module.exports = {
       productId: {
         type: Sequelize.INTEGER
       },
+      productTypeId: {
+        type: Sequelize.INTEGER
+      },
       supplierId: {
         type: Sequelize.INTEGER
       },
-      totalPaid: {
+      productFee: {
+        type: Sequelize.INTEGER
+      },
+      shipFee: {
         type: Sequelize.INTEGER
       },
       startTime: {

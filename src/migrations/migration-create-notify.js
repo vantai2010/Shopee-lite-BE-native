@@ -14,6 +14,9 @@ module.exports = {
       receiverId: {
         type: Sequelize.INTEGER
       },
+      productId: {
+        type: Sequelize.INTEGER
+      },
       titleId: {
         type: Sequelize.STRING
       },
@@ -24,6 +27,9 @@ module.exports = {
         type: Sequelize.TEXT
       },
       location: {
+        type: Sequelize.STRING
+      },
+      time: {
         type: Sequelize.STRING
       },
       createdAt: {

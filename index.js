@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken')
 const axios = require('axios')
 const path = require('path')
 const bodyParser = require('body-parser');
+const keyMap = require('./src/utils/constant/keyMap')
 
 const http = require('http').createServer(app)
 
@@ -48,46 +49,101 @@ notifyServer.on('connection', (socket) => {
     console.log(arrSocketsNotifyServer)
     notifyServer.emit('get-list-user-online', { listUserOnline: arrSocketsNotifyServer })
 
-
-
-    socket.on('send-request-borrow', async ({ senderId }) => {
-        arrSocketsNotifyServer.map(async (item) => {
-            if (item.roleId === 'R1') {
-                await axios.post(`${process.env.URL_BACK_END}/api/auth/add-one-notifycation-socket`, {
-                    titleId: 'ST',
-                    messageVi: "Có người dùng yêu cầu mượn sách",
-                    messageEn: "Some users ask to borrow books",
-                    receiverId: item.userId,
-                    senderId: senderId
-                })
-                notifyServer.to(item.id).emit('update-notification')
-                notifyServer.to(item.id).emit('update-list-manage')
-            }
+    socket.on("supplier-confirm-order", async ({ statusOrder, productId, senderId, receiverId, nameProduct }) => {
+        let titleId, messageEn, messageVi, pageType
+        if (statusOrder === keyMap.CHOXACNHAN_CHUATHANHTOAN || statusOrder === keyMap.CHOXACNHAN_DATHANHTOAN) {
+            titleId = keyMap.DON_HANG_DUOC_XAC_NHAN
+            pageType = 'CHOLAYHANG'
+            messageEn = `The ${nameProduct} product you ordered has been successfully confirmed by the shop owner. Please wait for the shop owner to prepare the goods to send`
+            messageVi = `Sản phẩm ${nameProduct} mà bạn đặt mua đã được chủ shop xác nhận đơn mua thành công. Vui lòng chờ chủ shop chuẩn bị hàng để gửi đi`
+        } else if (statusOrder === keyMap.CHOLAYHANG_DATHANHTOAN || statusOrder === keyMap.CHOLAYHANG_CHUATHANHTOAN) {
+            titleId = keyMap.DON_HANG_DANG_DUOC_GIAO
+            pageType = 'DANGGIAO'
+            messageEn = `The ${nameProduct} product has been sent by the shop owner to the shipping unit. Please check your incoming call to receive the goods from the shipping staff`
+            messageVi = `Sản phẩm ${nameProduct} đã được chủ shop gửi cho đơn vị vận chuyển. Bạn hãy kiểm tra cuộc gọi đến để nhận hàng từ nhân viên vận chuyển`
+        }
+        await axios.post(`${process.env.URL_BACK_END}/api/craete-new-notify-socket`, {
+            senderId: senderId,
+            receiverId: receiverId,
+            messageEn: messageEn,
+            messageVi: messageVi,
+            productId: productId,
+            titleId: titleId,
+            location: `Transaction_${pageType}`
         })
-    })
-
-    socket.on('send-notify-to-user', ({ receiverId }) => {
-        arrSocketsNotifyServer.map(item => {
+        arrSocketsNotifyServer.forEach(item => {
             if (item.userId === receiverId) {
-                notifyServer.to(item.id).emit('update-notification')
+                notifyServer.to(item.id).emit("update-notification")
             }
         })
     })
 
-    socket.on('argee-borrow-book', async ({ receiverId, bookName }) => {
-        arrSocketsNotifyServer.map(async (item) => {
+    socket.on("user-buy-product", async ({ productId, senderId, receiverId }) => {
+        let messageEn = "Someone has ordered a product from your shop"
+        let messageVi = `Có người đã đặt sản phẩm bên shop của bạn`
+        await axios.post(`${process.env.URL_BACK_END}/api/craete-new-notify-socket`, {
+            senderId: senderId,
+            receiverId: receiverId,
+            messageEn: messageEn,
+            messageVi: messageVi,
+            productId: productId,
+            titleId: keyMap.DON_HANG_MOI
+        })
+        arrSocketsNotifyServer.forEach(item => {
             if (item.userId === receiverId) {
-                await axios.post(`${process.env.URL_BACK_END}/api/auth/add-one-notifycation-socket`, {
-                    titleId: 'A',
-                    messageVi: `Yêu cầu mượn sách ${bookName} của bạn đã thành công vui lòng đến thư viện gặp thủ thư để nhận sách`,
-                    messageEn: `Request borrowing ${bookName} Successfully, please go to the library to meet the library to receive books`,
-                    receiverId: item.userId
-                })
-                notifyServer.to(item.id).emit('update-notification')
+                notifyServer.to(item.id).emit("update-notification")
             }
         })
     })
 
+    socket.on("user-cancel-buy-product", async ({ productId, senderId, receiverId, productName }) => {
+        let messageEn = `Product ${productName} has been canceled by the buyer`
+        let messageVi = `Sản phẩm ${productName} đã bị người mua hủy đơn hàng`
+        await axios.post(`${process.env.URL_BACK_END}/api/craete-new-notify-socket`, {
+            senderId: senderId,
+            receiverId: receiverId,
+            messageEn: messageEn,
+            messageVi: messageVi,
+            productId: productId,
+            titleId: keyMap.DON_HANG_BI_HUY
+        })
+        arrSocketsNotifyServer.forEach(item => {
+            if (item.userId === receiverId) {
+                notifyServer.to(item.id).emit("update-notification")
+            }
+        })
+    })
+
+
+    socket.on("user-confirm-receive-product", async ({ productId, senderId, receiverId, productName }) => {
+        let messageEn = `Product ${productName} has been delivered successfully`
+        let messageVi = `Sản phẩm ${productName} đã được giao thành công`
+        await axios.post(`${process.env.URL_BACK_END}/api/craete-new-notify-socket`, {
+            senderId: senderId,
+            receiverId: receiverId,
+            messageEn: messageEn,
+            messageVi: messageVi,
+            productId: productId,
+            titleId: keyMap.GIAO_HANG_THANH_CONG
+        })
+        arrSocketsNotifyServer.forEach(item => {
+            if (item.userId === receiverId) {
+                notifyServer.to(item.id).emit("update-notification")
+            }
+        })
+    })
+
+    socket.on("request-register-vendor", async ({ email, senderId }) => {
+        let messageEn = `Account ${email} wants to register as an agent account`
+        let messageVi = `Tài khoản ${email} muốn đăng ký thành tài khoản đại lý`
+        await axios.post(`${process.env.URL_BACK_END}/api/craete-new-notify-socket`, {
+            senderId: senderId,
+            receiverId: 1,
+            messageEn: messageEn,
+            messageVi: messageVi,
+            titleId: keyMap.HE_THONG
+        })
+    })
 
     socket.on('disconnect', () => {
         socket.disconnect();

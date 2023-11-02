@@ -14,8 +14,8 @@ module.exports = {
       productId: {
         type: Sequelize.INTEGER
       },
-      productType: {
-        type: Sequelize.STRING
+      productTypeId: {
+        type: Sequelize.INTEGER
       },
       rating: {
         type: Sequelize.INTEGER

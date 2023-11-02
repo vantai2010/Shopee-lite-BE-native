@@ -13,9 +13,16 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       User.hasMany(models.Cart, { foreignKey: "userId", as: 'userCartData' })
+      User.hasMany(models.Cart, { foreignKey: "supplierId", as: 'userSupplierCartData' })
       User.hasMany(models.History, { foreignKey: "userId", as: 'userHistoryData' })
+      User.hasMany(models.History, { foreignKey: "supplierId", as: 'supplierHistoryData' })
       User.hasMany(models.Review, { foreignKey: "userId", as: 'userReviewData' })
-      // User.hasOne(models.Account, { foreignKey: "userId", as: 'accountUserData' })
+      User.hasMany(models.Interact, { foreignKey: "followedId", as: "userFollowingData" })
+      User.hasMany(models.Interact, { foreignKey: "followerId", as: "userfollowedData" })
+      User.hasMany(models.Product, { foreignKey: "supplierId", as: "productSupplierData" })
+      User.hasMany(models.Chat, { foreignKey: "senderId", as: "senderChatData" })
+      User.hasMany(models.Chat, { foreignKey: "receiverId", as: "receiverChatData" })
+      User.belongsTo(models.Account, { foreignKey: "accountId", targetKey: "id", as: 'accountUserData' })
     }
   }
   User.init({

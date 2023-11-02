@@ -11,7 +11,7 @@ module.exports = {
       followerId: {
         type: Sequelize.INTEGER
       },
-      TrackedId: {
+      followedId: {
         type: Sequelize.INTEGER
       },
       createdAt: {

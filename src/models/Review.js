@@ -13,13 +13,14 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             // define association here
             Review.belongsTo(models.Product, { foreignKey: "productId", targetKey: "id", as: "productReviewData" })
+            Review.belongsTo(models.Product_Type, { foreignKey: "productTypeId", targetKey: "id", as: "productTypeReviewData" })
             Review.belongsTo(models.User, { foreignKey: "userId", targetKey: "id", as: "userReviewData" })
         }
     }
     Review.init({
         userId: DataTypes.INTEGER,
         productId: DataTypes.INTEGER,
-        productType: DataTypes.STRING,
+        productTypeId: DataTypes.INTEGER,
         rating: DataTypes.INTEGER,
         comment: DataTypes.TEXT,
         time: DataTypes.STRING,

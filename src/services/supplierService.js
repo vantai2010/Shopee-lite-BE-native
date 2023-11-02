@@ -1,29 +1,37 @@
-const keyMap = require("../utils/constant/keyMap")
+
 const db = require("../models/index")
-const argon2 = require("argon2")
-const emailService = require("./emailService")
-const jwt = require("jsonwebtoken")
 const { handleCheckUpdate, handleCheckCreate, handleCheckDelete } = require("../utils/verifyORM/checkResult")
-const { Op } = require("sequelize")
+const { Op, Sequelize } = require("sequelize")
+const handleDeleteImageFIle = require("../utils/handleDeleteImage")
+const keyMap = require("../utils/constant/keyMap")
+const moment = require("moment")
 
 const handleUpdateProduct = async ({ checkUpdateProduct, checkDestroyProductType, arrType }) => {
+    // console.log("arrType", arrType)
     if (!checkUpdateProduct) {
         return {
             errCode: 2,
             messageEN: "Update product failed",
             messageVI: "Cập nhật thông tin sản phẩm thất bại"
         }
-    } else if (!checkDestroyProductType) {
-        return {
-            errCode: 2,
-            messageEN: "The product model update process encountered a problem",
-            messageVI: "Quá trình cập nhật kiểu sản phẩm gặp trục trặc"
-        }
+        // } else if (!checkDestroyProductType && arrType.length > 0) {
+        //     return {
+        //         errCode: 2,
+        //         messageEN: "The product model update process encountered a problem",
+        //         messageVI: "Quá trình cập nhật kiểu sản phẩm gặp trục trặc"
+        //     }
+        // } 
     } else {
         let checkCreateProductType = await db.Product_Type.bulkCreate(arrType)
         if (!checkCreateProductType) {
             return {
                 errCode: 3,
+                messageEN: "Update product failure",
+                messageVI: "Cập nhật sản phẩm thất bại"
+            }
+        } else {
+            return {
+                errCode: 0,
                 messageEN: "Update product successfully",
                 messageVI: "Cập nhật sản phẩm thành công"
             }
@@ -37,7 +45,7 @@ class supplierService {
     createNewProduct = (data) => {
         return new Promise(async (resolve, reject) => {
             try {
-                let { name, image, price, description, categoryId, supplierId, quantity, arrType, files } = data
+                let { name, price, description, categoryId, supplierId, quantity, arrType, files } = data
                 let chekcExist = await db.Product.findOne({
                     where: { name: name, supplierId: supplierId }
                 })
@@ -159,6 +167,7 @@ class supplierService {
                                 name: product.name,
                                 image: product.image,
                                 price: product.price,
+                                supplierId: product.supplier,
                                 description: product.description,
                                 categoryId: product.categoryId,
                                 quantity: product.quantity,
@@ -168,9 +177,16 @@ class supplierService {
                         }
                         arrProducts.map(item => {
                             if (item.id === product.id) {
-                                return {
-                                    ...item,
-                                    productTypeData: item.productTypeData.push(product.productTypeData)
+                                if (!product.productTypeData.id) {
+                                    return {
+                                        ...item,
+                                        productTypeData: []
+                                    }
+                                } else {
+                                    return {
+                                        ...item,
+                                        productTypeData: item.productTypeData.push(product.productTypeData)
+                                    }
                                 }
                             } else {
                                 return item
@@ -203,17 +219,18 @@ class supplierService {
     updateProductBySupplier = (data) => {
         return new Promise(async (resolve, reject) => {
             try {
-                let { productId, name, image, price, description, categoryId, supplierId, quantity, arrType, files } = data
+                let { productId, name, image, price, description, categoryId, supplierId, quantity, arrType, files, oldImage } = data
                 if (arrType) {
                     arrType = arrType.map(item => {
                         return {
                             productId: productId,
                             type: item.type,
                             size: item.size,
-                            image: item.image
+                            quantity: item.quantity
                         }
                     })
                 }
+
                 let checkProductExists = await db.Product.findOne({
                     where: { id: productId }
                 })
@@ -237,30 +254,34 @@ class supplierService {
                             messageVI: "Tên sản phẩm này đã tồn tại"
                         })
                     } else {
+                        const arrImageDeleted = oldImage.filter(item => !image.includes(item))
+                        handleDeleteImageFIle(arrImageDeleted)
                         checkProductExists.name = name
-                        checkProductExists.image = files?.map(file => file.filename)
+                        checkProductExists.image = files?.map(file => file.filename).concat(image)
                         checkProductExists.price = price
                         checkProductExists.description = description
                         checkProductExists.categoryId = categoryId
                         checkProductExists.quantity = quantity
                         let checkUpdateProduct = await checkProductExists.save()
                         let checkDestroyProductType = await db.Product_Type.destroy({
-                            where: { productId: productId }
+                            where: arrType.length > 0 ? { productId: productId } : {}
                         })
                         let response = await handleUpdateProduct({ checkUpdateProduct, checkDestroyProductType, arrType })
                         resolve(response)
                     }
                 }
                 else if (checkProductExists.name === name) {
+                    const arrImageDeleted = oldImage.filter(item => !image.includes(item))
+                    handleDeleteImageFIle(arrImageDeleted)
                     checkProductExists.name = name
-                    checkProductExists.image = files?.map(file => file.filename)
+                    checkProductExists.image = files?.map(file => file.filename).concat(image)
                     checkProductExists.price = price
                     checkProductExists.description = description
                     checkProductExists.categoryId = categoryId
                     checkProductExists.quantity = quantity
                     let checkUpdateProduct = await checkProductExists.save()
                     let checkDestroyProductType = await db.Product_Type.destroy({
-                        where: { productId: productId }
+                        where: arrType.length > 0 ? { productId: productId } : {}
                     })
                     let response = await handleUpdateProduct({ checkUpdateProduct, checkDestroyProductType, arrType })
                     resolve(response)
@@ -274,7 +295,7 @@ class supplierService {
     deleteProductBySupplier = (data) => {
         return new Promise(async (resolve, reject) => {
             try {
-                let { supplierId, productId } = data
+                let { supplierId, productId, imageProduct } = data
                 let optionsFind = {}
                 if (Array.isArray(supplierId)) {
                     optionsFind.id = {
@@ -283,11 +304,24 @@ class supplierService {
                 } else {
                     optionsFind.id = productId
                 }
-
+                console.log(imageProduct)
+                handleDeleteImageFIle(imageProduct)
                 let checkDelete = await db.Product.destroy({
                     where: optionsFind
                 })
-                resolve(handleCheckDelete(checkDelete))
+                if (!checkDelete) {
+                    resolve({
+                        errCode: 1,
+                        messageEN: "Delete product failed",
+                        messageVI: "Xóa sản phẩm thành công"
+                    })
+                } else {
+                    let checkDeleteProductType = await db.Product_Type.destroy({
+                        where: { productId: productId }
+                    })
+
+                    resolve(handleCheckDelete(checkDeleteProductType))
+                }
             } catch (error) {
                 reject(error);
             }
@@ -338,7 +372,6 @@ class supplierService {
                 //         statusId: statusId,
                 //     }
                 // });
-
                 let products = await db.Cart.findAll({
                     where: {
                         supplierId: supplierId,
@@ -348,25 +381,62 @@ class supplierService {
                         {
                             model: db.Product,
                             as: "productCartData",
-                            attributes: ["id", "name", "description", "image", "price"],
-                            where: optionsFindProductName
+                            attributes: ["id", "name", "image", "price"],
+                            // where: optionsFindProductName
+                        },
+                        {
+                            model: db.Product_Type,
+                            as: "productTypeCartData",
+                            attributes: ["id", "type", "size", "quantity"],
+                            // where: optionsFindProductName
                         },
                         {
                             model: db.User,
                             as: "userCartData",
-                            attributes: ["id", "firstName", "lastName", "phoneNumber"],
-                            where: optionsFindUserName
+                            attributes: ["id", "firstName", "lastName", "phoneNumber", "address"],
+                            // where: optionsFindUserName
                         }
                     ],
                     // limit: limit,
-                    // offsey: offset
+                    // offsey: offset,
+                    // raw: true
                 })
-                if (products && totalCount) {
+                // console.log(products)
+                if (products) {
+                    let transOfStatusCHOLAYHANG_DATHANHTOAN = await db.Cart.count({
+                        where: { supplierId: supplierId, statusId: keyMap.CHOLAYHANG_DATHANHTOAN }
+                    })
+                    let transOfStatusCHOLAYHANG_CHUATHANHTOAN = await db.Cart.count({
+                        where: { supplierId: supplierId, statusId: keyMap.CHOLAYHANG_CHUATHANHTOAN }
+                    })
+                    let transOfStatusDANGSHIP_DATHANHTOAN = await db.Cart.count({
+                        where: { supplierId: supplierId, statusId: keyMap.DANGSHIP_DATHANHTOAN }
+                    })
+                    let transOfStatusDANGSHIP_CHUATHANHTOAN = await db.Cart.count({
+                        where: { supplierId: supplierId, statusId: keyMap.DANGSHIP_CHUATHANHTOAN }
+                    })
+                    let transOfStatusXACNHAN_CHUATHANHTOAN = await db.Cart.count({
+                        where: { supplierId: supplierId, statusId: keyMap.CHOXACNHAN_CHUATHANHTOAN }
+                    })
+                    let transOfStatusXACNHAN_DATHANHTOAN = await db.Cart.count({
+                        where: { supplierId: supplierId, statusId: keyMap.CHOXACNHAN_DATHANHTOAN }
+                    })
+
                     resolve({
                         errCode: 0,
                         messageEN: "Get products successfully",
                         messageVI: "Lấy sản phẩm thành công",
-                        data: products
+                        data: {
+                            products: products,
+                            transCount: {
+                                CHOLAYHANG_DATHANHTOAN: transOfStatusCHOLAYHANG_DATHANHTOAN,
+                                CHOLAYHANG_CHUATHANHTOAN: transOfStatusCHOLAYHANG_CHUATHANHTOAN,
+                                DANGSHIP_DATHANHTOAN: transOfStatusDANGSHIP_DATHANHTOAN,
+                                DANGSHIP_CHUATHANHTOAN: transOfStatusDANGSHIP_CHUATHANHTOAN,
+                                CHOXACNHAN_CHUATHANHTOAN: transOfStatusXACNHAN_CHUATHANHTOAN,
+                                CHOXACNHAN_DATHANHTOAN: transOfStatusXACNHAN_DATHANHTOAN,
+                            }
+                        }
                     })
                 } else {
                     resolve({
@@ -481,7 +551,7 @@ class supplierService {
         })
     }
 
-    confirmPackingProductSuccess = (data) => {
+    confirmTransactionSuccess = (data) => {
         return new Promise(async (resolve, reject) => {
             try {
                 let { cartId } = data
@@ -495,14 +565,128 @@ class supplierService {
                         messageVI: "Không tìm thấy giỏ hàng"
                     })
                 } else {
-                    if (cartData.statusId === keyMap.CHOLAYHANG_CHUATHANHTOAN) {
-                        cartData.statusId = keyMap.DANGSHIP_CHUATHANHTOAN
+                    let checkNumberProduct = await db.Product.findOne({
+                        where: { id: cartData.productId }
+                    })
+                    let checkNumberProductType = await db.Product_Type.findOne({
+                        where: { id: cartData.productTypeId }
+                    })
+                    if (checkNumberProduct.quantity < cartData.quantity || checkNumberProductType.quantity < cartData.quantity) {
+                        resolve({
+                            errCode: 1,
+                            messageEN: "the number is out of range",
+                            messageVI: "Số lượng mặt hàng không đủ"
+                        })
+                    } else {
+                        if (cartData.statusId === keyMap.CHOXACNHAN_CHUATHANHTOAN) {
+                            cartData.statusId = keyMap.CHOLAYHANG_CHUATHANHTOAN
+                        } else if (cartData.statusId === keyMap.CHOXACNHAN_DATHANHTOAN) {
+                            cartData.statusId = keyMap.CHOLAYHANG_DATHANHTOAN
+                        } else if (cartData.statusId === keyMap.CHOLAYHANG_CHUATHANHTOAN) {
+                            cartData.statusId = keyMap.DANGSHIP_CHUATHANHTOAN
+                            await db.Product.update({ quantity: Sequelize.literal(`quantity - ${cartData.quantity}`), bought: Sequelize.literal(`bought + ${cartData.quantity}`) }, { where: { id: cartData.productId } })
+                            await db.Product_Type.update({ quantity: Sequelize.literal(`quantity - ${cartData.quantity}`) }, { where: { id: cartData.productTypeId } })
+                        } else if (cartData.statusId === keyMap.CHOLAYHANG_DATHANHTOAN) {
+                            cartData.statusId = keyMap.DANGSHIP_DATHANHTOAN
+                            await db.Product.update({ quantity: Sequelize.literal(`quantity - ${cartData.quantity}`), bought: Sequelize.literal(`bought + ${cartData.quantity}`) }, { where: { id: cartData.productId } })
+                            await db.Product_Type.update({ quantity: Sequelize.literal(`quantity - ${cartData.quantity}`) }, { where: { id: cartData.productTypeId } })
+                        }
+                        cartData.time = moment().format(keyMap.FORMAT_TIME)
+                        let checkUpdate = await cartData.save()
+                        resolve(handleCheckUpdate(checkUpdate))
                     }
-                    if (cartData.statusId === keyMap.CHOLAYHANG_DATHANHTOAN) {
-                        cartData.statusId = keyMap.DANGSHIP_DATHANHTOAN
-                    }
-                    let checkUpdate = await cartData.save()
-                    resolve(handleCheckUpdate(checkUpdate))
+                }
+            } catch (error) {
+                reject(error);
+            }
+        })
+    }
+
+    getHistoryBySupplier = (data) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let { supplierId, timeType, start, end } = data
+                let startTime, endTime
+                let today = moment()
+                const dateFormat = 'YYYY-MM-DD HH:mm:ss.SSS Z';
+                if (timeType === "DAY") {
+                    startTime = today.startOf('day').format(dateFormat)
+                    endTime = today.endOf('day').format(dateFormat)
+                } else if (timeType === "WEEK") {
+                    startTime = today.startOf('week').format(dateFormat)
+                    endTime = today.endOf('week').format(dateFormat)
+                } else if (timeType === "MONTH") {
+                    startTime = today.startOf('month').format(dateFormat)
+                    endTime = today.endOf('month').format(dateFormat)
+                } else if (timeType === "DURING") {
+                    startTime = moment(start).format(dateFormat);
+                    endTime = moment(end).format(dateFormat)
+                }
+                // console.log(startTime, endTime, timeType)
+                let histories = await db.History.findAll({
+                    where: {
+                        supplierId: supplierId,
+                        createdAt: {
+                            [Op.between]: [startTime, endTime] // Khoảng thời gian trong ngày hiện tại
+                        }
+                    },
+                    include: [
+                        {
+                            model: db.Product,
+                            as: "productHistoryData"
+                        },
+                        {
+                            model: db.Product_Type,
+                            as: "productTypeHistoryData"
+                        },
+                        {
+                            model: db.User,
+                            as: "userHistoryData"
+                        }
+                    ]
+                })
+                if (!histories) {
+                    resolve({
+                        errCode: 1,
+                        messageEN: "Information not found",
+                        messageVI: "Không tìm thấy thông tin"
+                    })
+                } else {
+                    resolve({
+                        errCode: 0,
+                        messageVI: "Lấy thông tin thành công",
+                        messageEN: "Get information success",
+                        data: histories
+                    })
+                }
+            } catch (error) {
+                reject(error);
+            }
+        })
+    }
+
+    addNewVoucherForProductBySupplier = (data) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let { productId, discount, conditionsPrice, timeEnd } = data
+                let checkExists = await db.Promotion.findOne({
+                    where: { productId: productId, discount: discount, conditionsPrice: conditionsPrice }
+                })
+                if (checkExists) {
+                    resolve({
+                        errCode: 1,
+                        messageEN: "Voucher is already exists",
+                        messageVI: "Voucher này đã tồn tại"
+                    })
+                } else {
+                    let checkCreate = await db.Promotion.create({
+                        productId: productId,
+                        discount: discount,
+                        conditionsPrice: conditionsPrice,
+                        type: keyMap.VOUCHERSHOP,
+                        timeEnd: moment(timeEnd).format(keyMap.FORMAT_TIME)
+                    })
+                    resolve(handleCheckCreate(checkCreate))
                 }
             } catch (error) {
                 reject(error);

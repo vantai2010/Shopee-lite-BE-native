@@ -20,10 +20,12 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     Promotion.init({
+        productId: DataTypes.INTEGER,
         userId: DataTypes.INTEGER,
         type: DataTypes.STRING,
-        discount: DataTypes.FLOAT,
+        discount: DataTypes.STRING,
         conditionsPrice: DataTypes.INTEGER,
+        timeEnd: DataTypes.STRING,
     }, {
         sequelize,
         modelName: 'Promotion',

@@ -12,16 +12,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      // User.belongsTo(models.Allcode, { foreignKey: 'genderId', targetKey: 'keyMap', as: 'genderUserData' })
-      // User.belongsTo(models.Allcode, { foreignKey: 'roleId', targetKey: 'keyMap', as: 'roleData' })
-      // User.hasMany(models.History, { foreignKey: 'userId', as: 'userData' })
-      // User.hasMany(models.Comment, { foreignKey: 'userId', as: 'userCommentData' })
-      // User.hasMany(models.Cart, { foreignKey: 'userId', as: 'userCartData' })
+      Interact.belongsTo(models.User, { foreignKey: "followedId", targetKey: "id", as: "userFollowingData" })
+      Interact.belongsTo(models.User, { foreignKey: "followerId", targetKey: "id", as: "userfollowedData" })
+
+
     }
   }
   Interact.init({
     followerId: DataTypes.INTEGER,
-    TrackedId: DataTypes.INTEGER
+    followedId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Interact',
